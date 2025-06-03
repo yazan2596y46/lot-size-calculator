@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>حاسبة حجم اللوت - Forex Lot Size Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      background-image: url('https://images.unsplash.com/photo-1565373679615-8f3204f11d88?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80');
+      background-size: cover;
+      background-attachment: fixed;
+      margin: 0;
+      padding: 0;
+      color: #000;
+      min-height: 100vh;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      max-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 10px 0 5px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .result {
+      background: #e9ecef;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 15px;
+      position: relative;
+    }
+    .copy-btn {
+      display: block;
+      width: fit-content;
+      margin: 15px auto 0;
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      position: static;
+    }
+    .dark-mode body,
+    .dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    .dark-mode .container {
+      background: rgba(30, 30, 30, 0.95);
+      color: #ffffff;
+    }
+    .dark-mode h2 {
+      color: #ffffff;
+    }
+    .dark-mode .result {
+      background: #333;
+      color: #fff;
+    }
+    .dark-toggle, .lang-toggle {
+      position: absolute;
+      top: 10px;
+    }
+    .dark-toggle {
+      left: 10px;
+    }
+    .lang-toggle {
+      right: 10px;
+    }
+    .switch, .lang-switch {
+      display: inline-block;
+      cursor: pointer;
+      padding: 5px 10px;
+      background: #ccc;
+      border-radius: 20px;
+      color: #000;
+      user-select: none;
+    }
+    .dark-mode .switch,
+    .dark-mode .lang-switch {
+      background: #2196F3;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="dark-toggle"><span class="switch" onclick="toggleDarkMode()">🌙</span></div>
+  <div class="lang-toggle"><span class="lang-switch" onclick="toggleLanguage()">EN</span></div>
+  <div class="container">
+    <h2 id="title">حاسبة حجم اللوت</h2>
+    <label><span id="balanceLabel">رصيد الحساب ($):</span></label>
+    <input type="number" id="balance" placeholder="مثال: 1000">
+
+    <label><span id="riskLabel">نسبة المخاطرة (%):</span></label>
+    <input type="number" id="riskPercent" placeholder="مثال: 2">
+
+    <label><span id="entryLabel">سعر الدخول:</span></label>
+    <input type="number" id="entry" placeholder="مثال: 1.1000">
+
+    <label><span id="slLabel">وقف الخسارة:</span></label>
+    <input type="number" id="stopLoss" placeholder="مثال: 1.0950">
+
+    <label><span id="tpLabel">جني الأرباح (اختياري):</span></label>
+    <input type="number" id="takeProfit" placeholder="مثال: 1.1100">
+
+    <label><span id="pairLabel">زوج التداول:</span></label>
+    <select id="pair">
+      <option value="EURUSD">EUR/USD</option>
+      <option value="GBPUSD">GBP/USD</option>
+      <option value="USDJPY">USD/JPY</option>
+      <option value="USDCHF">USD/CHF</option>
+      <option value="USDCAD">USD/CAD</option>
+      <option value="AUDUSD">AUD/USD</option>
+      <option value="NZDUSD">NZD/USD</option>
+      <option value="XAUUSD">الذهب / USD</option>
+      <option value="XAGUSD">الفضة / USD</option>
+      <option value="USOIL">النفط / USD</option>
+      <option value="NAS100">ناسداك 100</option>
+      <option value="DJ30">داو جونز 30</option>
+    </select>
+
+    <button onclick="calculateLot()" id="calcBtn">احسب</button>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    let currentLang = 'ar';
+
+    const translations = {
+      en: {
+        title: 'Lot Size Calculator',
+        balanceLabel: 'Account Balance ($):',
+        riskLabel: 'Risk Percentage (%):',
+        entryLabel: 'Entry Price:',
+        slLabel: 'Stop Loss:',
+        tpLabel: 'Take Profit (Optional):',
+        pairLabel: 'Trading Pair:',
+        calcBtn: 'Calculate',
+        copied: 'Copied!'
+      },
+      ar: {
+        title: 'حاسبة حجم اللوت',
+        balanceLabel: 'رصيد الحساب ($):',
+        riskLabel: 'نسبة المخاطرة (%):',
+        entryLabel: 'سعر الدخول:',
+        slLabel: 'وقف الخسارة:',
+        tpLabel: 'جني الأرباح (اختياري):',
+        pairLabel: 'زوج التداول:',
+        calcBtn: 'احسب',
+        copied: 'تم النسخ!'
+      }
+    };
+
+    function getPipValue(pair) {
+      if (pair === 'XAUUSD') return 0.1;
+      if (pair === 'XAGUSD' || pair === 'USOIL') return 0.01;
+      if (pair === 'NAS100' || pair === 'DJ30') return 1;
+      if (pair.includes('JPY')) return 0.01;
+      return 0.0001;
+    }
+
+    function getPipValuePerLot(pair) {
+      if (pair === 'XAUUSD') return 10;
+      if (pair === 'XAGUSD') return 50;
+      if (pair === 'USOIL') return 10;
+      if (pair === 'NAS100' || pair === 'DJ30') return 1;
+      if (pair.includes('JPY')) return 9.5;
+      return 10;
+    }
+
+    function calculateLot() {
+      const balance = parseFloat(document.getElementById('balance').value);
+      const riskPercent = parseFloat(document.getElementById('riskPercent').value);
+      const entry = parseFloat(document.getElementById('entry').value);
+      const stopLoss = parseFloat(document.getElementById('stopLoss').value);
+      const takeProfit = parseFloat(document.getElementById('takeProfit').value);
+      const pair = document.getElementById('pair').value;
+
+      if (isNaN(balance) || isNaN(riskPercent) || isNaN(entry) || isNaN(stopLoss)) {
+        alert(currentLang === 'ar' ? 'يرجى تعبئة الحقول المطلوبة' : 'Please fill in the required fields');
+        return;
+      }
+
+      const pipSize = getPipValue(pair);
+      const pipValuePerLot = getPipValuePerLot(pair);
+      const riskAmount = balance * (riskPercent / 100);
+      const pipDifference = Math.abs(entry - stopLoss) / pipSize;
+      const lotSize = riskAmount / (pipDifference * pipValuePerLot);
+      const potentialLoss = pipDifference * pipValuePerLot * lotSize;
+
+      let resultHTML = `<strong>${currentLang === 'ar' ? 'عدد النقاط (Pip):' : 'Pip Count:'}</strong> ${pipDifference.toFixed(2)}<br>
+        <strong>${currentLang === 'ar' ? 'اللوت المناسب:' : 'Lot Size:'}</strong> ${lotSize.toFixed(2)}<br>
+        <strong>${currentLang === 'ar' ? 'الخسارة المحتملة:' : 'Potential Loss:'}</strong> ${potentialLoss.toFixed(2)} $<br>`;
+
+      if (!isNaN(takeProfit)) {
+        const rewardPips = Math.abs(takeProfit - entry) / pipSize;
+        const potentialProfit = rewardPips * pipValuePerLot * lotSize;
+        const rewardRiskRatio = potentialProfit / potentialLoss;
+
+        resultHTML += `<strong>${currentLang === 'ar' ? 'عدد نقاط الربح:' : 'Reward Pips:'}</strong> ${rewardPips.toFixed(2)}<br>
+          <strong>${currentLang === 'ar' ? 'الربح المحتمل:' : 'Potential Profit:'}</strong> ${potentialProfit.toFixed(2)} $<br>
+          <strong>${currentLang === 'ar' ? 'نسبة العائد للمخاطرة:' : 'Reward:Risk Ratio:'}</strong> ${rewardRiskRatio.toFixed(2)} : 1<br>`;
+      }
+
+      resultHTML += `<button class='copy-btn' onclick='copyResult()'>${currentLang === 'ar' ? 'نسخ' : 'Copy'}</button>`;
+
+      document.getElementById('result').innerHTML = resultHTML;
+    }
+
+    function copyResult() {
+      const resultText = document.getElementById('result').innerText.replace('نسخ', '').replace('Copy', '');
+      navigator.clipboard.writeText(resultText).then(() => {
+        alert(translations[currentLang].copied);
+      });
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'ar' ? 'en' : 'ar';
+      const t = translations[currentLang];
+      document.documentElement.lang = currentLang;
+      document.getElementById('title').innerText = t.title;
+      document.getElementById('balanceLabel').innerText = t.balanceLabel;
+      document.getElementById('riskLabel').innerText = t.riskLabel;
+      document.getElementById('entryLabel').innerText = t.entryLabel;
+      document.getElementById('slLabel').innerText = t.slLabel;
+      document.getElementById('tpLabel').innerText = t.tpLabel;
+      document.getElementById('pairLabel').innerText = t.pairLabel;
+      document.getElementById('calcBtn').innerText = t.calcBtn;
+      document.querySelector('.lang-switch').innerText = currentLang === 'ar' ? 'EN' : 'AR';
+    }
+  </script>
+</body>
+</html>
